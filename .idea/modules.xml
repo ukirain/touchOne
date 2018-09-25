@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/TouchOne.iml" filepath="$PROJECT_DIR$/TouchOne.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/touchOne.iml" filepath="$PROJECT_DIR$/touchOne.iml" />
     </modules>
   </component>
 </project>
