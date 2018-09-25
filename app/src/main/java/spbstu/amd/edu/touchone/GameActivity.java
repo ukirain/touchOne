@@ -113,7 +113,7 @@ public class GameActivity extends AppCompatActivity {
             mPath.lineTo(mX, mY);
             circlePath.reset();
             // commit the path to our offscreen
-            mCanvas.drawPath(mPath,  mPaint);
+            //mCanvas.drawPath(mPath,  mPaint);
             // kill this so we don't double draw
             mPath.reset();
         }
@@ -140,6 +140,8 @@ public class GameActivity extends AppCompatActivity {
             return true;
         }
     }
+
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
