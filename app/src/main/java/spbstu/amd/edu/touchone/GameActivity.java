@@ -1,11 +1,15 @@
 package spbstu.amd.edu.touchone;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.Rect;
+import android.graphics.RectF;
+import android.graphics.Region;
 import android.os.Bundle;
 import android.app.Activity;
 import android.support.v7.app.ActionBar;
@@ -14,6 +18,31 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Toast;
+
+class Recta{
+    Rect r;
+    boolean selected;
+    Paint color;
+
+    Recta(int left, int top, int right, int bottom){
+        r = new Rect(left, top, right, bottom);
+        selected = false;
+        color = new Paint();
+        color.setColor(Color.BLUE);
+    }
+
+    void select(){
+        selected = true;
+        color.setColor(Color.GREEN);
+    }
+
+    void unselect(){
+        selected = false;
+        color.setColor(Color.BLUE);
+    }
+}
+
 
 public class GameActivity extends AppCompatActivity {
 
@@ -21,6 +50,13 @@ public class GameActivity extends AppCompatActivity {
 
     DrawingView dv ;
     private Paint mPaint;
+
+    private Paint p;
+    boolean gameOver = false;
+    private Recta recta[];
+
+    int numRect = 10;
+    boolean win;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,6 +91,7 @@ public class GameActivity extends AppCompatActivity {
         private Paint circlePaint;
         private Path circlePath;
 
+
         public DrawingView(GameActivity c) {
             super(c);
             context=c;
@@ -67,6 +104,12 @@ public class GameActivity extends AppCompatActivity {
             circlePaint.setStyle(Paint.Style.STROKE);
             circlePaint.setStrokeJoin(Paint.Join.MITER);
             circlePaint.setStrokeWidth(4f);
+
+            recta = new Recta[numRect];
+            p = new Paint();
+            for(int i = 0; i < numRect; i++) {
+                recta[i] = new Recta( i * 50, i * 50, i * 50 + 50, i * 50 + 50);
+            }
         }
 
         @Override
@@ -75,6 +118,9 @@ public class GameActivity extends AppCompatActivity {
 
             mBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
             mCanvas = new Canvas(mBitmap);
+
+            p.setColor(Color.RED);
+            p.setStrokeWidth(10);
         }
 
         @Override
@@ -82,6 +128,9 @@ public class GameActivity extends AppCompatActivity {
             super.onDraw(canvas);
 
             canvas.drawBitmap( mBitmap, 0, 0, mBitmapPaint);
+            for(int i = 0; i < numRect; i++) {
+                canvas.drawRect(recta[i].r.left, recta[i].r.top, recta[i].r.right, recta[i].r.bottom, recta[i].color);
+            }
             canvas.drawPath( mPath,  mPaint);
             canvas.drawPath( circlePath,  circlePaint);
         }
@@ -99,14 +148,46 @@ public class GameActivity extends AppCompatActivity {
         private void touch_move(float x, float y) {
             float dx = Math.abs(x - mX);
             float dy = Math.abs(y - mY);
+            float R = 2;
             if (dx >= TOUCH_TOLERANCE || dy >= TOUCH_TOLERANCE) {
+                float L = (float)Math.sqrt((x - mX) * (x - mX) + (y - mY) * (y - mY));
+                float bias = 1 - R / L;
                 mPath.quadTo(mX, mY, (x + mX)/2, (y + mY)/2);
                 mX = x;
                 mY = y;
 
                 circlePath.reset();
-                circlePath.addCircle(mX, mY, 30, Path.Direction.CW);
+                circlePath.addCircle(mX  + 100 * ((x - mX) / dx), mY + 100 * ((y - mY) / dy), R, Path.Direction.CW);
             }
+        }
+
+        private void collider(float x, float y) {
+
+            Region rPath = new Region(); //path of our finger
+            Region clipPath = new Region(0, 0, dv.getWidth(), dv.getHeight());
+            rPath.setPath(mPath, clipPath);
+
+            Region circlePath = new Region(); //path of our finger
+            circlePath.setPath(mPath, clipPath);
+
+            //rects
+            for(int i = 0; i < numRect; i++) {
+                if (recta[i].r.contains((int) x, (int) y)) {
+                    //pick the square
+                    recta[i].select();
+
+                }
+            }
+
+            //самопересечение
+            if(rPath.contains((int)x,(int)y)){
+                //crash
+                gameOver = true;
+            } else {
+                //not crash
+                gameOver = false;
+            }
+            gameContinuum();
         }
 
         private void touch_up() {
@@ -116,12 +197,16 @@ public class GameActivity extends AppCompatActivity {
             //mCanvas.drawPath(mPath,  mPaint);
             // kill this so we don't double draw
             mPath.reset();
+            for(int i = 0; i < numRect; i++) {
+                    recta[i].unselect();
+            }
         }
 
         @Override
         public boolean onTouchEvent(MotionEvent event) {
             float x = event.getX();
             float y = event.getY();
+
 
             switch (event.getAction()) {
                 case MotionEvent.ACTION_DOWN:
@@ -130,6 +215,7 @@ public class GameActivity extends AppCompatActivity {
                     break;
                 case MotionEvent.ACTION_MOVE:
                     touch_move(x, y);
+                    collider(x, y);
                     invalidate();
                     break;
                 case MotionEvent.ACTION_UP:
@@ -139,6 +225,7 @@ public class GameActivity extends AppCompatActivity {
             }
             return true;
         }
+
     }
 
 
@@ -159,4 +246,33 @@ public class GameActivity extends AppCompatActivity {
                 return super.onOptionsItemSelected(item);
         }
     }
+
+    public void gameContinuum(){
+
+
+        if(gameOver){
+            mPaint.setColor(Color.RED);
+        } else {
+            mPaint.setColor(Color.YELLOW);
+        }
+
+        win = true;
+        for(int i = 0; i < numRect; i++){
+            if(recta[i].selected == false){
+                win = false;
+                break;
+            }
+        }
+        if(win == true){
+            Toast.makeText(this, "YOU WIN", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(GameActivity.this, MainActivity.class);
+            startActivity(intent);
+        }
+        if(gameOver == true){
+            Toast.makeText(this, "YOU LOSE", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(GameActivity.this, MainActivity.class);
+            startActivity(intent);
+        }
+    }
+
 }
