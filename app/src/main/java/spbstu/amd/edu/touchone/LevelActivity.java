@@ -9,7 +9,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageButton;
 import android.widget.Toast;
 
 public class LevelActivity extends AppCompatActivity {
@@ -22,7 +21,7 @@ public class LevelActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_level);
 
-        ibOne = findViewById(R.id.ibOne);
+        ibOne = (Button)findViewById(R.id.ibOne);
 
         actionBar = getSupportActionBar();
         actionBar.setHomeButtonEnabled(true);

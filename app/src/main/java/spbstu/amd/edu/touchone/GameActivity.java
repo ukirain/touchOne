@@ -240,7 +240,7 @@ public class GameActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
-                this.finish();
+                finish();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -265,13 +265,11 @@ public class GameActivity extends AppCompatActivity {
         }
         if(win == true){
             Toast.makeText(this, "YOU WIN", Toast.LENGTH_SHORT).show();
-            Intent intent = new Intent(GameActivity.this, MainActivity.class);
-            startActivity(intent);
+            finish();
         }
         if(gameOver == true){
             Toast.makeText(this, "YOU LOSE", Toast.LENGTH_SHORT).show();
-            Intent intent = new Intent(GameActivity.this, MainActivity.class);
-            startActivity(intent);
+            finish();
         }
     }
 
